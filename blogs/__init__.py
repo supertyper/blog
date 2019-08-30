@@ -67,11 +67,38 @@ def register_commands(app):
     def initdb(drop):
         """Initialize the database."""
         if drop:
-            click.confirm('This operation will delete the database, do you want to continue?', abort=True)
+            click.confirm('你确定要删除之前的数据库吗？', abort=True)
             db.drop_all()
-            click.echo('Drop tables.')
+            click.echo('删除数据库.')
         db.create_all()
-        click.echo('Initialized database.')
+        click.echo('成功建立数据库.')
+
+    @app.cli.command()
+    @click.option('--category', default=10, help='含有几个分类，默认为10个')
+    @click.option('--post', default=50, help='含有多少文章，默认为50个')
+    @click.option('--comment', default=500, help='含有多少评论，默认为500个')
+    def forge(category, post, comment):
+        from blogs.fakes import fake_admin, fake_category, fake_posts, fake_comments, fake_links
+        db.drop_all()
+        db.create_all()
+
+        click.echo('生成超级用户...')
+        fake_admin()
+
+        click.echo('分类列表...')
+        fake_category(category)
+
+        click.echo('生成文章信息...')
+        fake_posts(post)
+
+        click.echo('生成评论信息...')
+        fake_comments(comment)
+
+        click.echo('生成友情链接...')
+        fake_links()
+
+        click.echo('完成.')
+
 
 
 def register_shell_context(app):
@@ -84,4 +111,3 @@ def register_template_context(app):
     pass
 
 
-from blogs import commands

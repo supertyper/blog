@@ -13,7 +13,7 @@ fake = Faker('zh_CN')
 
 def fake_admin():
     admin = Admin(
-        user_name = '管理员',
+        username = '管理员',
         blog_title = '蓝色随记',
         blog_sub_title = '学习，记录，成长，改变！',
         name = 'daMao',
@@ -23,11 +23,11 @@ def fake_admin():
     db.session.commit()
 
 
-def fake_category():
+def fake_category(count=10):
     category = Category(name='default')
     db.session.add(category)
 
-    for i in range(10):
+    for i in range(count):
         category = Category(name=fake.word())
         db.session.add(category)
         try:
@@ -36,7 +36,7 @@ def fake_category():
             db.session.rollback()
 
 
-def fake_post(count=50):
+def fake_posts(count=50):
     for i in range(count):
         post = Post(
             title = fake.sentence(),
@@ -45,6 +45,59 @@ def fake_post(count=50):
             timestamp=fake.date_time_this_year()
         )
         db.session.add(post)
+    db.session.commit()
+
+def fake_comments(count=500):
+    for i in range(count):
+        comment = Comment(
+            author = fake.name(),
+            email = fake.email(),
+            site = fake.url(),
+            timestamp=fake.date_time_this_year(),
+            reviewed = True,
+            post=Post.query.get(random.randint(1, Post.query.count()))
+        )
+        db.session.add(comment)
+
+    salt = int(count * 0.1)
+    for i in range(salt):
+        # unreviewed comments
+        comment = Comment(
+            author=fake.name(),
+            email=fake.email(),
+            site=fake.url(),
+            body=fake.sentence(),
+            timestamp=fake.date_time_this_year(),
+            reviewed=False,
+            post=Post.query.get(random.randint(1, Post.query.count()))
+        )
+        db.session.add(comment)
+
+        # from admin
+        comment = Comment(
+            author='施珊珊',
+            email='lovesss@163.com',
+            site='163.com',
+            body=fake.sentence(),
+            timestamp=fake.date_time_this_year(),
+            from_admin=True,
+            reviewed=True,
+            post=Post.query.get(random.randint(1, Post.query.count()))
+        )
+        db.session.add(comment)
+
+    for i in range(salt):
+        comment = Comment(
+            author=fake.name(),
+            email=fake.email(),
+            site=fake.url(),
+            body=fake.sentence(),
+            timestamp=fake.date_time_this_year(),
+            reviewed=True,
+            replied=Comment.query.get(random.randint(1, Comment.query.count())),
+            post=Post.query.get(random.randint(1, Post.query.count()))
+        )
+        db.session.add(comment)
     db.session.commit()
 
 
